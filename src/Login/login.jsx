@@ -2,6 +2,7 @@ import { Mail, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
+import api from "../utils/apiHandler";
 
 // ✅ Validation Schema
 const LoginSchema = Yup.object().shape({
@@ -16,6 +17,23 @@ const LoginSchema = Yup.object().shape({
 export default function Login() {
   const navigate = useNavigate();
 
+  const handleSubmit = async (values) => {
+    const payload = {
+      email: values.email,
+      password: values.password,
+    };
+    console.log(payload);
+
+    const res = await api.post("/v1/employee/login", payload);
+    // console.log(res.data.token);
+    if (await res.data.token){
+      localStorage.setItem("token",res.data.token)
+    }
+    navigate('/dashboard')
+    
+
+  };
+
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-pink-100 via-purple-100 to-blue-100">
       <div className="bg-white p-8 rounded-2xl shadow-lg w-96 border border-gray-200">
@@ -26,10 +44,8 @@ export default function Login() {
         <Formik
           initialValues={{ email: "", password: "" }}
           //   validationSchema={LoginSchema}
-          onSubmit={(values) => {
-            console.log("Login Data:", values);
-            
-          }}
+          validationSchema={LoginSchema}
+          onSubmit={handleSubmit}
         >
           {({ errors, touched }) => (
             <Form className="space-y-5">
@@ -96,7 +112,7 @@ export default function Login() {
                 type="submit"
                 className="w-full bg-gradient-to-r from-blue-400 to-purple-400 text-white py-2 rounded-lg 
                            font-semibold shadow-md hover:opacity-90 transition"
-                           onClick={navigate("/dashboard")}
+                onClick={() => navigate("/dashboard")}
               >
                 Login
               </button>

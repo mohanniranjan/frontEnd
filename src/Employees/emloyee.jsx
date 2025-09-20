@@ -1,4 +1,6 @@
 export default function EmployeesTable({ employees }) {
+
+
   return (
     <div className="overflow-x-auto">
       <table className="min-w-full divide-y divide-gray-200">
@@ -14,19 +16,19 @@ export default function EmployeesTable({ employees }) {
               Email
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Department
+              Age
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Role
+              Password
             </th>
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
           {employees.length > 0 ? (
             employees.map((emp) => (
-              <tr key={emp.id}>
+              <tr key={emp._id}>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                  {emp.id}
+                  {emp._id}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                   {emp.name}
@@ -35,10 +37,11 @@ export default function EmployeesTable({ employees }) {
                   {emp.email}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                  {emp.department}
+                  {emp.age}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                  {emp.role}
+                  {emp.
+password}
                 </td>
               </tr>
             ))

@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { User, Mail, Lock, Upload } from "lucide-react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
+import api from "../utils/apiHandler";
 
 // Validation schema
 const RegisterSchema = Yup.object().shape({
@@ -26,6 +27,28 @@ export default function Register() {
       setPreview(URL.createObjectURL(file)); // show preview
     }
   };
+ 
+const [image,setImage]=useState(null)
+  const handleSubmit = async (values) => {
+    try {
+      const formData = new FormData();
+      formData.append("name", values.name);
+      formData.append("email", values.email);
+      formData.append("password", values.password);
+      formData.append("image", values.profilePhoto);
+
+     const res= await api.post("v1/employee/register",formData)
+     const data=res.data.data
+     console.log(data.image)
+     setImage(data.image)
+     navigate('/register')
+
+
+    } catch (err) {
+      console.error(err);
+      alert("Something went wrong!");
+    }
+  };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-pink-100 via-purple-100 to-blue-100">
@@ -43,11 +66,7 @@ export default function Register() {
             profilePhoto: null,
           }}
           validationSchema={RegisterSchema}
-          onSubmit={(values) => {
-            console.log("Register Data:", values);
-            alert("Registration Successful!");
-            navigate("/login");
-          }}
+          onSubmit={handleSubmit}
         >
           {({ errors, touched, setFieldValue }) => (
             <Form className="space-y-5">
@@ -96,11 +115,8 @@ export default function Register() {
                     name="name"
                     placeholder="John Doe"
                     className={`w-full pl-10 pr-4 py-2 rounded-lg bg-gray-50 text-gray-800 placeholder-gray-400
-                               border ${
-                                 errors.name && touched.name
-                                   ? "border-red-400"
-                                   : "border-gray-300"
-                               } focus:ring-2 focus:ring-blue-300 outline-none`}
+                               border ${errors.name && touched.name ? "border-red-400" : "border-gray-300"}
+                               focus:ring-2 focus:ring-blue-300 outline-none`}
                   />
                 </div>
                 <ErrorMessage name="name" component="div" className="text-red-500 text-sm mt-1" />
@@ -118,11 +134,8 @@ export default function Register() {
                     name="email"
                     placeholder="you@example.com"
                     className={`w-full pl-10 pr-4 py-2 rounded-lg bg-gray-50 text-gray-800 placeholder-gray-400
-                               border ${
-                                 errors.email && touched.email
-                                   ? "border-red-400"
-                                   : "border-gray-300"
-                               } focus:ring-2 focus:ring-blue-300 outline-none`}
+                               border ${errors.email && touched.email ? "border-red-400" : "border-gray-300"}
+                               focus:ring-2 focus:ring-blue-300 outline-none`}
                   />
                 </div>
                 <ErrorMessage name="email" component="div" className="text-red-500 text-sm mt-1" />
@@ -140,11 +153,8 @@ export default function Register() {
                     name="password"
                     placeholder="••••••••"
                     className={`w-full pl-10 pr-4 py-2 rounded-lg bg-gray-50 text-gray-800 placeholder-gray-400
-                               border ${
-                                 errors.password && touched.password
-                                   ? "border-red-400"
-                                   : "border-gray-300"
-                               } focus:ring-2 focus:ring-blue-300 outline-none`}
+                               border ${errors.password && touched.password ? "border-red-400" : "border-gray-300"}
+                               focus:ring-2 focus:ring-blue-300 outline-none`}
                   />
                 </div>
                 <ErrorMessage name="password" component="div" className="text-red-500 text-sm mt-1" />
@@ -162,18 +172,11 @@ export default function Register() {
                     name="confirmPassword"
                     placeholder="••••••••"
                     className={`w-full pl-10 pr-4 py-2 rounded-lg bg-gray-50 text-gray-800 placeholder-gray-400
-                               border ${
-                                 errors.confirmPassword && touched.confirmPassword
-                                   ? "border-red-400"
-                                   : "border-gray-300"
-                               } focus:ring-2 focus:ring-blue-300 outline-none`}
+                               border ${errors.confirmPassword && touched.confirmPassword ? "border-red-400" : "border-gray-300"}
+                               focus:ring-2 focus:ring-blue-300 outline-none`}
                   />
                 </div>
-                <ErrorMessage
-                  name="confirmPassword"
-                  component="div"
-                  className="text-red-500 text-sm mt-1"
-                />
+                <ErrorMessage name="confirmPassword" component="div" className="text-red-500 text-sm mt-1" />
               </div>
 
               {/* Register Button */}
@@ -195,11 +198,14 @@ export default function Register() {
                 >
                   Login here
                 </button>
+                   
               </div>
             </Form>
           )}
         </Formik>
       </div>
+      <img src={`http://localhost:3500/uploads/${image}`} alt="" />
+ 
     </div>
   );
 }

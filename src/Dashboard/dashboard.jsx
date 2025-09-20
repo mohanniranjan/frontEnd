@@ -2,9 +2,13 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { User } from "lucide-react";
 import EmployeesTable from "../Employees/emloyee";
+import api from "../utils/apiHandler";
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  
+
+
 
   const [user, setUser] = useState({
     name: "Nandu Vallakati",
@@ -17,13 +21,15 @@ export default function Dashboard() {
 
   // Fetch employee data only when Employees module is active
   useEffect(() => {
-    if (activeModule === "employees") {
-      fetch("https://your-backend.com/api/employees")
-        .then((res) => res.json())
-        .then((data) => setEmployees(data))
-        .catch((err) => console.error(err));
-    }
-  }, [activeModule]);
+  
+ getEmpData()
+  }, []);
+
+  async function getEmpData(){
+      const res=await api.get("/employee/getAll")
+      console.log(res.data)
+      setEmployees(res.data.data)
+  }
 
   const handleLogout = () => {
     navigate("/login");
