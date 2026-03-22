@@ -11,7 +11,7 @@ getEmpData()
     },[])
 
 async function getEmpData() {
-    const res=await api.get("/employee/getAll")
+    const res=await api.get("/v1/employees/getAll")
    
     console.log("employtee Data :",res)
 

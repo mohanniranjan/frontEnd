@@ -17,7 +17,7 @@ export default function Dashboard() {
   });
 
   const [activeModule, setActiveModule] = useState("home"); // track current module
-  const [employees, setEmployees] = useState([]);
+  const [employee, setEmployee] = useState({});
 
   // Fetch employee data only when Employees module is active
   useEffect(() => {
@@ -26,9 +26,9 @@ export default function Dashboard() {
   }, []);
 
   async function getEmpData(){
-      const res=await api.get("/employee/getAll")
+      const res=await api.get("/api/dashboard/")
       console.log(res.data)
-      setEmployees(res.data.data)
+      setEmployee(res.data)
   }
 
   const handleLogout = () => {
@@ -40,9 +40,9 @@ export default function Dashboard() {
       {/* Sidebar */}
       <aside className="w-64 bg-white/90 backdrop-blur-md shadow-lg flex flex-col p-6">
         <div className="flex items-center space-x-4 mb-6">
-          {user.profilePhoto ? (
+          {employee.profile_pic ? (
             <img
-              src={user.profilePhoto}
+              src={`http://localhost:4500${employee.profile_pic}`}
               alt="Profile"
               className="w-12 h-12 rounded-full object-cover border border-gray-300"
             />
@@ -52,8 +52,8 @@ export default function Dashboard() {
             </div>
           )}
           <div>
-            <h3 className="text-gray-800 font-semibold">{user.name}</h3>
-            <p className="text-gray-500 text-sm">{user.email}</p>
+            <h3 className="text-gray-800 font-semibold">{employee.username}</h3>
+            <p className="text-gray-500 text-sm">{employee.email}</p>
           </div>
         </div>
 
@@ -83,16 +83,16 @@ export default function Dashboard() {
             <div className="bg-white rounded-2xl p-6 mb-6 shadow-md flex flex-col items-center sm:flex-row sm:justify-between">
               <div>
                 <h1 className="text-3xl font-bold text-gray-800 mb-2">
-                  Welcome Back, {user.name}!
+                  Welcome Back, {employee.username}!
                 </h1>
                 <p className="text-gray-600">
                   Here’s a quick overview of your account.
                 </p>
               </div>
 
-              {user.profilePhoto ? (
+              {employee.profile_pic? (
                 <img
-                  src={user.profilePhoto}
+                  src={`http://localhost:4500/${employee.profile_pic}`}
                   alt="Profile"
                   className="w-48 rounded-xl shadow-lg mt-4 sm:mt-0 object-cover border border-gray-200"
                 />

@@ -1,49 +1,73 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { User, Mail, Lock, Upload } from "lucide-react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import api from "../utils/apiHandler";
 
-// Validation schema
+// ✅ Validation Schema
 const RegisterSchema = Yup.object().shape({
   name: Yup.string().required("Full name is required"),
-  email: Yup.string().email("Enter a valid email").required("Email is required"),
-  password: Yup.string().min(6, "Password must be at least 6 characters").required("Password is required"),
+  email: Yup.string()
+    .email("Enter a valid email")
+    .required("Email is required"),
+
+  password: Yup.string()
+    .min(6, "Password must be at least 6 characters")
+    .required("Password is required"),
   confirmPassword: Yup.string()
     .oneOf([Yup.ref("password"), null], "Passwords must match")
     .required("Confirm your password"),
-  profilePhoto: Yup.mixed().required("Profile photo is required"),
+ 
 });
 
 export default function Register() {
   const navigate = useNavigate();
   const [preview, setPreview] = useState(null);
+  const [image, setImage] = useState(null);
 
+  // ✅ Handle image preview + formik value
   const handlePhotoChange = (e, setFieldValue) => {
     const file = e.target.files[0];
     if (file) {
-      setFieldValue("profilePhoto", file); // update Formik field
-      setPreview(URL.createObjectURL(file)); // show preview
+      setFieldValue("profile_pic", file);
+      setPreview(URL.createObjectURL(file));
     }
   };
- 
-const [image,setImage]=useState(null)
-  const handleSubmit = async (values) => {
+
+  // ✅ Submit handler
+  const handleSubmit = async (values, { resetForm }) => {
     try {
+      console.log(values.profile_pic)
       const formData = new FormData();
-      formData.append("name", values.name);
+      formData.append("username", values.name);
       formData.append("email", values.email);
+     
       formData.append("password", values.password);
-      formData.append("image", values.profilePhoto);
+      formData.append("profile_pic", values.profile_pic); // ⚠️ MUST match backend
 
-     const res= await api.post("v1/employee/register",formData)
-     const data=res.data.data
-     console.log(data.image)
-     setImage(data.image)
-     navigate('/register')
+      // 🔍 Debug FormData
+      for (let pair of formData.entries()) {
+        console.log(pair[0], pair[1]);
+      }
 
+      const res = await api.post("/api/register/", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
+      console.log("Response:", res.data);
+
+  
+
+      alert("Registration successful!");
+
+      resetForm();
+      setPreview(null);
+
+      // ✅ Navigate to login
+      navigate("/login");
     } catch (err) {
       console.error(err);
       alert("Something went wrong!");
@@ -51,7 +75,9 @@ const [image,setImage]=useState(null)
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-pink-100 via-purple-100 to-blue-100">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-pink-100 via-purple-100 to-blue-100">
+      
+      {/* FORM CARD */}
       <div className="bg-white p-8 rounded-2xl shadow-lg w-96 border border-gray-200">
         <h2 className="text-3xl font-extrabold text-center text-gray-800 mb-6">
           Create Account ✨
@@ -61,6 +87,7 @@ const [image,setImage]=useState(null)
           initialValues={{
             name: "",
             email: "",
+            age: "",
             password: "",
             confirmPassword: "",
             profilePhoto: null,
@@ -70,24 +97,27 @@ const [image,setImage]=useState(null)
         >
           {({ errors, touched, setFieldValue }) => (
             <Form className="space-y-5">
-              {/* Profile Photo Upload */}
+
+              {/* PROFILE PHOTO */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Profile Photo
                 </label>
+
                 <div className="flex items-center space-x-4">
                   {preview ? (
                     <img
                       src={preview}
                       alt="Preview"
-                      className="w-16 h-16 rounded-full object-cover border border-gray-300"
+                      className="w-16 h-16 rounded-full object-cover border"
                     />
                   ) : (
-                    <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center text-gray-400">
+                    <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center">
                       <User size={24} />
                     </div>
                   )}
-                  <label className="cursor-pointer flex items-center space-x-2 text-blue-500 hover:text-blue-700">
+
+                  <label className="cursor-pointer flex items-center space-x-2 text-blue-500">
                     <Upload size={20} />
                     <span>Upload</span>
                     <input
@@ -98,114 +128,109 @@ const [image,setImage]=useState(null)
                     />
                   </label>
                 </div>
-                {errors.profilePhoto && touched.profilePhoto && (
-                  <div className="text-red-500 text-sm mt-1">{errors.profilePhoto}</div>
-                )}
+
+                <ErrorMessage
+                  name="profilePhoto"
+                  component="div"
+                  className="text-red-500 text-sm"
+                />
               </div>
 
-              {/* Name */}
+              {/* NAME */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Full Name
-                </label>
+                <label className="text-sm">Full Name</label>
                 <div className="relative">
-                  <User className="absolute left-3 top-2.5 text-gray-400" size={18} />
+                  <User className="absolute left-3 top-2.5" size={18} />
                   <Field
-                    type="text"
                     name="name"
-                    placeholder="John Doe"
-                    className={`w-full pl-10 pr-4 py-2 rounded-lg bg-gray-50 text-gray-800 placeholder-gray-400
-                               border ${errors.name && touched.name ? "border-red-400" : "border-gray-300"}
-                               focus:ring-2 focus:ring-blue-300 outline-none`}
+                    className="w-full pl-10 p-2 border rounded"
                   />
                 </div>
-                <ErrorMessage name="name" component="div" className="text-red-500 text-sm mt-1" />
+                <ErrorMessage name="name" component="div" className="text-red-500 text-sm"/>
               </div>
 
-              {/* Email */}
+              {/* EMAIL */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Email
-                </label>
+                <label className="text-sm">Email</label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-2.5 text-gray-400" size={18} />
+                  <Mail className="absolute left-3 top-2.5" size={18} />
                   <Field
-                    type="email"
                     name="email"
-                    placeholder="you@example.com"
-                    className={`w-full pl-10 pr-4 py-2 rounded-lg bg-gray-50 text-gray-800 placeholder-gray-400
-                               border ${errors.email && touched.email ? "border-red-400" : "border-gray-300"}
-                               focus:ring-2 focus:ring-blue-300 outline-none`}
+                    className="w-full pl-10 p-2 border rounded"
                   />
                 </div>
-                <ErrorMessage name="email" component="div" className="text-red-500 text-sm mt-1" />
+                <ErrorMessage name="email" component="div" className="text-red-500 text-sm"/>
               </div>
 
-              {/* Password */}
+              {/* AGE */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Password
-                </label>
+                <label className="text-sm">Age</label>
+                <Field
+                  name="age"
+                  className="w-full p-2 border rounded"
+                />
+                <ErrorMessage name="age" component="div" className="text-red-500 text-sm"/>
+              </div>
+
+              {/* PASSWORD */}
+              <div>
+                <label className="text-sm">Password</label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-2.5 text-gray-400" size={18} />
+                  <Lock className="absolute left-3 top-2.5" size={18} />
                   <Field
                     type="password"
                     name="password"
-                    placeholder="••••••••"
-                    className={`w-full pl-10 pr-4 py-2 rounded-lg bg-gray-50 text-gray-800 placeholder-gray-400
-                               border ${errors.password && touched.password ? "border-red-400" : "border-gray-300"}
-                               focus:ring-2 focus:ring-blue-300 outline-none`}
+                    className="w-full pl-10 p-2 border rounded"
                   />
                 </div>
-                <ErrorMessage name="password" component="div" className="text-red-500 text-sm mt-1" />
+                <ErrorMessage name="password" component="div" className="text-red-500 text-sm"/>
               </div>
 
-              {/* Confirm Password */}
+              {/* CONFIRM PASSWORD */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Confirm Password
-                </label>
+                <label className="text-sm">Confirm Password</label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-2.5 text-gray-400" size={18} />
+                  <Lock className="absolute left-3 top-2.5" size={18} />
                   <Field
                     type="password"
                     name="confirmPassword"
-                    placeholder="••••••••"
-                    className={`w-full pl-10 pr-4 py-2 rounded-lg bg-gray-50 text-gray-800 placeholder-gray-400
-                               border ${errors.confirmPassword && touched.confirmPassword ? "border-red-400" : "border-gray-300"}
-                               focus:ring-2 focus:ring-blue-300 outline-none`}
+                    className="w-full pl-10 p-2 border rounded"
                   />
                 </div>
-                <ErrorMessage name="confirmPassword" component="div" className="text-red-500 text-sm mt-1" />
+                <ErrorMessage name="confirmPassword" component="div" className="text-red-500 text-sm"/>
               </div>
 
-              {/* Register Button */}
+              {/* SUBMIT */}
               <button
                 type="submit"
-                className="w-full bg-gradient-to-r from-blue-400 to-purple-400 text-white py-2 rounded-lg
-                           font-semibold shadow-md hover:opacity-90 transition"
+                className="w-full bg-blue-500 text-white p-2 rounded"
               >
                 Register
               </button>
 
-              {/* Extra Links */}
-              <div className="text-center text-sm text-gray-600 mt-3">
+              <div className="text-center text-sm">
                 Already have an account?{" "}
-                <button
-                  type="button"
+                <span
                   onClick={() => navigate("/login")}
-                  className="hover:text-gray-800 font-medium"
+                  className="text-blue-500 cursor-pointer"
                 >
-                  Login here
-                </button>
-                   
+                  Login
+                </span>
               </div>
+
             </Form>
           )}
         </Formik>
       </div>
-      <img src={`http://localhost:3500/uploads/${image}`} alt="" />
- 
+
+      {/* ✅ SHOW UPLOADED IMAGE */}
+      {image && (
+        <img
+          src={`http://localhost:3500/uploadedimages/${image}`}
+          alt="Uploaded"
+          className="mt-6 w-24 h-24 rounded-full"
+        />
+      )}
     </div>
   );
 }

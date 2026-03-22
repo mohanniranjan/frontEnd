@@ -24,14 +24,12 @@ export default function Login() {
     };
     console.log(payload);
 
-    const res = await api.post("/v1/employee/login", payload);
-    // console.log(res.data.token);
-    if (await res.data.token){
-      localStorage.setItem("token",res.data.token)
+    const res = await api.post("/api/login/", payload);
+    console.log(res.data.token);
+    if (await res.data.token) {
+      localStorage.setItem("token", res.data.token);
     }
-    navigate('/dashboard')
-    
-
+    navigate("/dashboard");
   };
 
   return (
